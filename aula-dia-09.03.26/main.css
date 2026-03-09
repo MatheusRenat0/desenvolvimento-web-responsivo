@@ -1,0 +1,42 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background: #121212;
+    color: white;
+}
+
+.header {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.header h1 {
+    font-size: 3rem;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.container {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 80px;
+    padding: 20px;
+}
+
+.lyrics pre {
+    font-family: inherit;
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+.sidebar {
+    text-align: center;
+}
+
+.artist-photo {
+    width: 300px;
+    border-radius: 4px;
+}
