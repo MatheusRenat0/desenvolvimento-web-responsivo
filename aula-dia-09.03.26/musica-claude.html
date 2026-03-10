@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birds — Imagine Dragons</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Josefin+Sans:wght@100;200;300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #0e0d0b;
+      --paper: #f5f0e8;
+      --dust: #c4b89a;
+      --mist: #8a7d68;
+      --sky: #6b8fa3;
+      --gold: #b8935a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'Cormorant Garamond', serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 6px; height: 6px;
+      background: var(--paper);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease, opacity 0.3s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 32px; height: 32px;
+      border: 1px solid rgba(245,240,232,0.4);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      mix-blend-mode: difference;
+    }
+
+    /* Birds canvas */
+    #birdsCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.18;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 10vw;
+      z-index: 2;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: clamp(9px, 1vw, 11px);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--dust);
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 1.2s ease 0.3s forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(7rem, 18vw, 18rem);
+      font-weight: 300;
+      line-height: 0.85;
+      letter-spacing: -0.02em;
+      color: var(--paper);
+      opacity: 0;
+      animation: fadeUp 1.4s ease 0.6s forwards;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--dust);
+    }
+
+    .hero-band {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 200;
+      font-size: clamp(11px, 1.4vw, 14px);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--mist);
+      margin-top: 3rem;
+      opacity: 0;
+      animation: fadeUp 1.4s ease 0.9s forwards;
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 1s ease 2s forwards;
+    }
+
+    .hero-scroll span {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 9px;
+      letter-spacing: 0.4em;
+      color: var(--mist);
+      text-transform: uppercase;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(to bottom, var(--mist), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--dust) 30%, var(--dust) 70%, transparent);
+      opacity: 0.2;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ─── SPLIT SECTION ─── */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+      position: relative;
+      z-index: 2;
+    }
+
+    .split-visual {
+      position: relative;
+      overflow: hidden;
+      background: #0a0906;
+    }
+
+    .artist-frame {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(1.1);
+      opacity: 0.55;
+      transition: opacity 0.6s ease;
+    }
+
+    .split-visual:hover .artist-frame { opacity: 0.75; }
+
+    .artist-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 50%, var(--ink) 100%);
+      pointer-events: none;
+    }
+
+    .artist-name-overlay {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 2.5rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 10px;
+      letter-spacing: 0.5em;
+      color: var(--dust);
+      text-transform: uppercase;
+    }
+
+    .split-text {
+      padding: 8vh 8% 8vh 8%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .split-label {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 9px;
+      letter-spacing: 0.5em;
+      color: var(--sky);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .split-quote {
+      font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.5;
+      color: var(--paper);
+      margin-bottom: 2rem;
+    }
+
+    .split-sub {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 200;
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--mist);
+      text-transform: uppercase;
+    }
+
+    /* ─── LYRICS SECTION ─── */
+    .lyrics-section {
+      position: relative;
+      z-index: 2;
+      padding: 12vh 10vw;
+    }
+
+    .lyrics-header {
+      display: flex;
+      align-items: baseline;
+      gap: 2rem;
+      margin-bottom: 6rem;
+    }
+
+    .lyrics-header h2 {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 11px;
+      letter-spacing: 0.5em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .lyrics-header-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--gold), transparent);
+      opacity: 0.3;
+    }
+
+    .lyrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4rem 6rem;
+    }
+
+    .verse {
+      position: relative;
+    }
+
+    .verse-number {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 9px;
+      letter-spacing: 0.4em;
+      color: var(--mist);
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      display: block;
+    }
+
+    .verse p {
+      font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+      font-weight: 300;
+      line-height: 1.9;
+      color: rgba(245,240,232,0.7);
+    }
+
+    .verse p.highlighted {
+      color: var(--paper);
+      font-style: italic;
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+    }
+
+    .verse::before {
+      content: '';
+      position: absolute;
+      left: -1.5rem;
+      top: 0;
+      width: 1px;
+      height: 0;
+      background: var(--gold);
+      opacity: 0.4;
+      transition: height 1s ease;
+    }
+
+    .verse.visible::before { height: 100%; }
+
+    /* ─── CHORUS HIGHLIGHT ─── */
+    .chorus-block {
+      position: relative;
+      z-index: 2;
+      padding: 0 10vw 12vh;
+    }
+
+    .chorus-inner {
+      border: 1px solid rgba(196, 184, 154, 0.15);
+      padding: 5rem 6%;
+      position: relative;
+      background: rgba(245,240,232,0.02);
+    }
+
+    .chorus-inner::before {
+      content: '❝';
+      position: absolute;
+      top: -1.5rem;
+      left: 5%;
+      font-size: 4rem;
+      color: var(--gold);
+      opacity: 0.5;
+      line-height: 1;
+    }
+
+    .chorus-text {
+      font-size: clamp(1.6rem, 3vw, 3rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.4;
+      color: var(--paper);
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+
+    .chorus-text strong {
+      font-style: normal;
+      font-weight: 400;
+      color: var(--gold);
+    }
+
+    .chorus-tag {
+      display: block;
+      text-align: center;
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 10px;
+      letter-spacing: 0.5em;
+      color: var(--mist);
+      text-transform: uppercase;
+      margin-top: 2.5rem;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 2;
+      padding: 6vh 10vw;
+      border-top: 1px solid rgba(196,184,154,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .footer-title {
+      font-size: clamp(3rem, 7vw, 7rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1;
+      color: rgba(245,240,232,0.08);
+      letter-spacing: -0.02em;
+      user-select: none;
+    }
+
+    .footer-info {
+      text-align: right;
+    }
+
+    .footer-info p {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      color: var(--mist);
+      text-transform: uppercase;
+      line-height: 2;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50%       { opacity: 1;   transform: scaleY(1.15); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; }
+      .split-visual { min-height: 50vh; }
+      .lyrics-grid { grid-template-columns: 1fr 1fr; gap: 3rem 3rem; }
+    }
+    @media (max-width: 600px) {
+      .lyrics-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 2rem; align-items: flex-start; }
+      .footer-info { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- Birds canvas -->
+  <canvas id="birdsCanvas"></canvas>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <p class="hero-eyebrow">Imagine Dragons · 2018 · Origins</p>
+    <h1 class="hero-title">Bir<em>ds</em></h1>
+    <p class="hero-band">Dan Reynolds &nbsp;·&nbsp; Wayne Sermon &nbsp;·&nbsp; Ben McKee &nbsp;·&nbsp; Daniel Platzman</p>
+
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── SPLIT ─── -->
+  <section class="split">
+    <div class="split-visual">
+      <!-- Fallback artístico se imagem não carregar -->
+      <svg width="100%" height="100%" viewBox="0 0 600 800" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;">
+        <defs>
+          <radialGradient id="rg" cx="40%" cy="35%" r="60%">
+            <stop offset="0%" stop-color="#3a3028" />
+            <stop offset="100%" stop-color="#0a0906" />
+          </radialGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#rg)"/>
+        <!-- Silhouette abstract man -->
+        <ellipse cx="300" cy="220" rx="80" ry="90" fill="#1a1510" opacity="0.7"/>
+        <rect x="220" y="300" width="160" height="280" rx="30" fill="#1a1510" opacity="0.7"/>
+        <!-- Birds scattered -->
+        <g fill="#c4b89a" opacity="0.3">
+          <path d="M80 120 Q90 110 100 120 Q90 115 80 120Z"/>
+          <path d="M120 80 Q132 70 144 80 Q132 75 120 80Z"/>
+          <path d="M400 60 Q412 50 424 60 Q412 55 400 60Z"/>
+          <path d="M480 140 Q495 128 510 140 Q495 134 480 140Z"/>
+          <path d="M520 80 Q534 68 548 80 Q534 74 520 80Z"/>
+          <path d="M50 300 Q65 288 80 300 Q65 294 50 300Z"/>
+          <path d="M560 320 Q575 308 590 320 Q575 314 560 320Z"/>
+        </g>
+      </svg>
+      <img src="static/dan-reynolds.jpg" alt="Dan Reynolds" class="artist-frame"
+           onerror="this.style.display='none'">
+      <div class="artist-overlay"></div>
+      <span class="artist-name-overlay">Dan Reynolds</span>
+    </div>
+
+    <div class="split-text reveal">
+      <span class="split-label">Sobre a música</span>
+      <p class="split-quote">"Two spirits spiral<br>the many folders of all the souls<br>where the wind blows —<br>no one knows where it goes"</p>
+      <p class="split-sub">Uma meditação sobre separação, memória e esperança</p>
+    </div>
+  </section>
+
+  <div class="divider" style="margin: 0 10vw; width: auto;"></div>
+
+  <!-- ─── CHORUS BLOCK ─── -->
+  <section class="chorus-block" style="padding-top: 10vh;">
+    <div class="chorus-inner reveal">
+      <p class="chorus-text">
+        <strong>Birds fly</strong> in different directions<br>
+        I hope to see you again<br>
+        <span style="font-size: 0.7em; color: var(--dust);">Sunsets, sunrises — living the dream</span>
+      </p>
+      <span class="chorus-tag">Refrão · Chorus</span>
+    </div>
+  </section>
+
+  <!-- ─── LYRICS ─── -->
+  <section class="lyrics-section">
+    <div class="lyrics-header reveal">
+      <h2>Letra completa</h2>
+      <div class="lyrics-header-line"></div>
+    </div>
+
+    <div class="lyrics-grid">
+
+      <div class="verse reveal">
+        <span class="verse-number">01 · Verso</span>
+        <p class="highlighted">Two spirits spiral<br>The many folders of all the souls<br>Where the wind blows<br>No one knows where it goes</p>
+      </div>
+
+      <div class="verse reveal">
+        <span class="verse-number">02 · Pré-Refrão</span>
+        <p>And your heart is heavy<br>And the world is on your back<br>And I know it's hard<br>To see the light through the cracks</p>
+      </div>
+
+      <div class="verse reveal">
+        <span class="verse-number">03 · Refrão</span>
+        <p class="highlighted">Birds fly in different directions<br>Ooh-ooh-ooh<br>I hope to see you again<br>Sunsets, sunrises<br>Living the dream, watching the leaves</p>
+      </div>
+
+      <div class="verse reveal">
+        <span class="verse-number">04 · Cont. Refrão</span>
+        <p>Changing the seasons<br>Some nights I think of you<br>Reliving the past, wishing it'd last<br>Wishing and dreaming</p>
+      </div>
+
+      <div class="verse reveal">
+        <span class="verse-number">05 · Ponte</span>
+        <p class="highlighted">Hard to let you go<br>I know you're gone, I know you're gone<br>I'm holding on<br>I'm holding on</p>
+      </div>
+
+      <div class="verse reveal">
+        <span class="verse-number">06 · Final</span>
+        <p>But birds fly in different directions<br>So <em>fly high, fly high</em><br>Birds fly in different directions<br>So fly high, fly high</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── SECOND CHORUS ─── -->
+  <section class="chorus-block">
+    <div class="chorus-inner reveal" style="border-color: rgba(107,143,163,0.15); background: rgba(107,143,163,0.03);">
+      <p class="chorus-text" style="color: rgba(245,240,232,0.75); font-size: clamp(1rem, 2vw, 1.8rem);">
+        Some nights I think of you<br>
+        Reliving the past, wishing it'd last<br>
+        <strong style="color: var(--sky);">Wishing and dreaming</strong>
+      </p>
+      <span class="chorus-tag" style="color: var(--sky); opacity: 0.6;">Ooh-ooh-ooh · I hope to see you again</span>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <p class="footer-title">Birds</p>
+    <div class="footer-info reveal">
+      <p>Imagine Dragons</p>
+      <p>Álbum: Origins · 2018</p>
+      <p>Compositor: Dan Reynolds</p>
+      <p style="color: rgba(138,125,104,0.4); margin-top: 1rem;">© Interscope Records</p>
+    </div>
+  </footer>
+
+  <script>
+    // ─── Cursor ───
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.transform = `translate(${mx - 3}px, ${my - 3}px)`;
+    });
+
+    function animateRing() {
+      rx += (mx - rx - 16) * 0.12;
+      ry += (my - ry - 16) * 0.12;
+      ring.style.transform = `translate(${rx}px, ${ry}px)`;
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // ─── Birds canvas ───
+    const canvas = document.getElementById('birdsCanvas');
+    const ctx    = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Bird {
+      constructor() { this.reset(true); }
+      reset(init) {
+        this.x  = init ? Math.random() * canvas.width : -40;
+        this.y  = Math.random() * canvas.height * 0.7 + 50;
+        this.vx = 0.4 + Math.random() * 0.8;
+        this.vy = (Math.random() - 0.5) * 0.2;
+        this.size    = 4 + Math.random() * 8;
+        this.flap    = Math.random() * Math.PI * 2;
+        this.flapSpd = 0.04 + Math.random() * 0.04;
+        this.opacity = 0.3 + Math.random() * 0.7;
+      }
+      update() {
+        this.x    += this.vx;
+        this.y    += this.vy + Math.sin(this.flap) * 0.15;
+        this.flap += this.flapSpd;
+        if (this.x > canvas.width + 40) this.reset(false);
+      }
+      draw() {
+        const w = Math.cos(this.flap) * this.size;
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.strokeStyle = '#c4b89a';
+        ctx.lineWidth   = 1;
+        ctx.beginPath();
+        ctx.moveTo(this.x - this.size, this.y);
+        ctx.quadraticCurveTo(this.x, this.y + w * 0.5, this.x + this.size, this.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    const birds = Array.from({ length: 40 }, () => new Bird());
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      birds.forEach(b => { b.update(); b.draw(); });
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    // ─── Scroll reveal ───
+    const reveals = document.querySelectorAll('.reveal');
+    const verses  = document.querySelectorAll('.verse');
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => {
+            e.target.classList.add('visible');
+          }, i * 80);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    reveals.forEach(el => io.observe(el));
+    verses.forEach(el  => io.observe(el));
+  </script>
+</body>
+</html>

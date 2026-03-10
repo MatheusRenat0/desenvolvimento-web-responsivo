@@ -1,42 +1,207 @@
-body {
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap');
+
+*, *::before, *::after {
     margin: 0;
     padding: 0;
-    font-family: sans-serif;
-    background: #121212;
-    color: white;
+    box-sizing: border-box;
 }
 
+:root {
+    --bg:      #0f0f0f;
+    --surface: #171717;
+    --border:  rgba(255,255,255,0.07);
+    --muted:   #444;
+    --dim:     #888;
+    --text:    #e8e4dc;
+    --accent:  #c9a96e;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Serif Display', Georgia, serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ── */
 .header {
-    text-align: center;
-    padding: 40px 0;
+    padding: 72px 48px 56px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 48px;
+    width: 48px;
+    height: 1px;
+    background: var(--accent);
 }
 
 .header h1 {
-    font-size: 3rem;
-    margin: 0;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--text);
+}
+
+.header h3 {
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
     text-transform: uppercase;
+    color: var(--dim);
+    margin-top: 4px;
 }
 
+/* ── Layout ── */
 .container {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 80px;
-    padding: 20px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-areas: "sidebar lyrics";
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 64px 48px;
+    align-items: start;
 }
 
-.lyrics pre {
-    font-family: inherit;
-    font-size: 1.2rem;
-    line-height: 1.6;
-}
-
+/* ── Sidebar ── */
 .sidebar {
-    text-align: center;
+    grid-area: sidebar;
+    position: sticky;
+    top: 48px;
+    padding-right: 48px;
+}
+
+.sidebar h2 {
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 16px;
 }
 
 .artist-photo {
-    width: 300px;
-    border-radius: 4px;
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    display: block;
+    border-radius: 2px;
+    filter: grayscale(100%) contrast(1.05) brightness(0.9);
+    opacity: 0.8;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+.artist-photo:hover {
+    opacity: 1;
+    filter: grayscale(60%) contrast(1.05);
+}
+
+/* Fallback se a imagem não carregar */
+.artist-photo-wrap {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.artist-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 12px;
+    display: block;
+}
+
+/* ── Lyrics ── */
+.lyrics {
+    grid-area: lyrics;
+    border-left: 1px solid var(--border);
+    padding-left: 48px;
+}
+
+.lyrics pre {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(1rem, 1.6vw, 1.15rem);
+    line-height: 2;
+    color: rgba(232, 228, 220, 0.7);
+    white-space: pre-wrap;
+    counter-reset: stanza;
+}
+
+/* Destaque linhas do refrão */
+.lyrics pre .chorus {
+    color: var(--text);
+    font-style: normal;
+}
+
+/* ── Animação de entrada ── */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.header  { animation: fadeIn 0.8s ease both; }
+.sidebar { animation: fadeIn 0.8s ease 0.15s both; }
+.lyrics  { animation: fadeIn 0.8s ease 0.25s both; }
+
+/* ── Responsivo ── */
+@media (max-width: 700px) {
+    .header {
+        padding: 48px 24px 40px;
+    }
+
+    .header::after {
+        left: 24px;
+    }
+
+    .container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "sidebar"
+            "lyrics";
+        padding: 40px 24px;
+        gap: 40px;
+    }
+
+    .sidebar {
+        position: static;
+        padding-right: 0;
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .artist-photo-wrap {
+        width: 100px;
+        flex-shrink: 0;
+    }
+
+    .lyrics {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 40px;
+    }
 }
