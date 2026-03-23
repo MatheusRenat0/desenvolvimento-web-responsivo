@@ -1,0 +1,40 @@
+<!DOCTYPE hmtl>
+<html>
+<head>
+<style>
+
+.container{
+    display:flex;
+    flex-direction: colum;
+    background: #eee:
+}
+
+.container{
+    background: light;
+    padding: 20px;
+    margin: 10px;
+}
+
+<style>
+</head>
+<body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
